@@ -1,0 +1,1 @@
+### This tool speeds up the process of taking screenshots for GUI test automation
