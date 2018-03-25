@@ -1,6 +1,6 @@
 import os
 import subprocess
-from tkinter import Tk, Label, Button, Entry, StringVar, Frame, RIDGE, X, LEFT
+from tkinter import Tk, Label, Button, Entry, StringVar, Frame, Checkbutton, RIDGE, X, LEFT, Radiobutton, N
 from PIL import ImageTk, Image
 
 MINICAP = os.getcwd() + "\\bin\\MiniCap.exe"
@@ -10,30 +10,68 @@ class GUI:
     def __init__(self, master):
         self.master = master
         master.title("Eu quero ibagens")
+        self.warning = StringVar().set("Warning")
+        self.error = StringVar().set("Error")
+        self.button = StringVar().set("Button")
+        self.message = StringVar().set("Message")
+        self.extensionVar = StringVar().set(".png")
 
         # Creation of widgets
         self.path = StringVar()
+        self.fileName = StringVar()
         self.pathToPreviewImg = "preview.png"
         self.previewImg = ImageTk.PhotoImage(Image.open(self.pathToPreviewImg))
 
         self.preview = Label(master, image = self.previewImg)
 
+        self.lowerButtonsFrame = Frame(master, bd=0)
         self.ssButton   = Button(master, text="Capturar ibagem")
         self.ssButton.bind('<Button-1>', self.update_preview_widget)
-        self.saveButton = Button(master, text='Salvar ibagem')        
-
+        self.saveButton = Button(self.lowerButtonsFrame, text='Salvar ibagem')
+        self.ocrButton = Button(self.lowerButtonsFrame, text='Rodar OCR')
+        
         self.iframe = Frame(master, bd=2, relief=RIDGE)
         self.pathLabel = Label(self.iframe, text='Destino: ')
         self.pathEntry = Entry(self.iframe, textvariable=self.path, bg='white')
         self.path.set(r"C:\Scripts\Imagens")
 
+        self.i2frame   = Frame(master, bd=2, relief=RIDGE)
+        self.nameEntry = Entry(self.i2frame, textvariable=self.fileName, bg='white')
+        self.nameLabel = Label(self.i2frame, text='Nome do arquivo: ')
+        self.cbFrame   = Frame(self.i2frame, bd=1, relief=RIDGE)
+        self.warningCB = Checkbutton(self.cbFrame, text="Warning", variable=self.warning)
+        self.errorCB   = Checkbutton(self.cbFrame, text="Error", variable=self.error)
+        self.buttonCB  = Checkbutton(self.cbFrame, text="Button", variable=self.button)
+        self.messageCB = Checkbutton(self.cbFrame, text="Message", variable=self.message)
+        self.pngRB     = Radiobutton(self.cbFrame, text=".png", variable=self.extensionVar, value=".png")
+        self.jpgRB     = Radiobutton(self.cbFrame, text=".jpg", variable=self.extensionVar, value=".jpg")
+        self.sufixLabel = Label(self.cbFrame, text="Adicionar sufixo: ")
+
         # Layout of widgets
-        self.ssButton.pack(pady=10)
-        self.preview.pack()
+        self.ssButton.pack(pady=5)
+        self.preview.pack(pady=5)
         self.iframe.pack(padx=50,fill=X)
-        self.pathLabel.pack(side=LEFT, padx=5, pady=5)
+        self.pathLabel.pack(side=LEFT, padx=32, pady=5)
         self.pathEntry.pack(padx=5, pady=5, fill=X)
-        self.saveButton.pack(pady=5)
+
+        self.i2frame.pack(padx=50, fill=X)
+        self.nameLabel.pack(side=LEFT, anchor=N, padx=5, pady=3)
+        self.nameEntry.pack(padx=5, pady=3, fill=X)
+        self.cbFrame.pack(side=LEFT, pady=3)
+
+        self.sufixLabel.grid(row=0, column=0)
+        self.warningCB.grid(row=0, column=1)
+        self.errorCB.grid(row=0, column=2)
+        self.buttonCB.grid(row=0, column=3)
+        self.messageCB.grid(row=0, column=4)
+        self.pngRB.grid(row=0, column=5)
+        self.jpgRB.grid(row=0, column=6)
+
+        self.lowerButtonsFrame.pack(pady=5)
+        self.saveButton.grid(row=0, column=0, padx=5)
+        self.ocrButton.grid(row=0, column=1, padx=5)
+        
+
 
     @classmethod
     def update_current_image(self):
