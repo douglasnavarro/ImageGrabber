@@ -1,6 +1,6 @@
 import os
 import subprocess
-from tkinter import Tk, Label, Button, Entry, StringVar, Frame, Checkbutton, RIDGE, X, LEFT, Radiobutton, N
+from tkinter import Tk, Label, Button, Entry, StringVar, Frame, Checkbutton, RIDGE, X, LEFT, Radiobutton, N, IntVar
 from PIL import ImageTk, Image
 
 MINICAP = os.getcwd() + "\\bin\\MiniCap.exe"
@@ -10,11 +10,12 @@ class GUI:
     def __init__(self, master):
         self.master = master
         master.title("Eu quero ibagens")
-        self.warning = StringVar().set("Warning")
-        self.error = StringVar().set("Error")
-        self.button = StringVar().set("Button")
-        self.message = StringVar().set("Message")
-        self.extensionVar = StringVar().set(".png")
+        self.warning = StringVar()
+        self.error = StringVar()
+        self.button = StringVar()
+        self.message = StringVar()
+        self.extensionVar = StringVar()
+        self.extensionVar.set(".png")
 
         # Creation of widgets
         self.path = StringVar()
@@ -29,6 +30,7 @@ class GUI:
         self.ssButton.bind('<Button-1>', self.update_preview_widget)
         self.saveButton = Button(self.lowerButtonsFrame, text='Salvar ibagem')
         self.ocrButton = Button(self.lowerButtonsFrame, text='Rodar OCR')
+        self.ocrButton.bind('<Button-1>', self.update_name_entry)
         
         self.iframe = Frame(master, bd=2, relief=RIDGE)
         self.pathLabel = Label(self.iframe, text='Destino: ')
@@ -39,10 +41,10 @@ class GUI:
         self.nameEntry = Entry(self.i2frame, textvariable=self.fileName, bg='white')
         self.nameLabel = Label(self.i2frame, text='Nome do arquivo: ')
         self.cbFrame   = Frame(self.i2frame, bd=1, relief=RIDGE)
-        self.warningCB = Checkbutton(self.cbFrame, text="Warning", variable=self.warning)
-        self.errorCB   = Checkbutton(self.cbFrame, text="Error", variable=self.error)
-        self.buttonCB  = Checkbutton(self.cbFrame, text="Button", variable=self.button)
-        self.messageCB = Checkbutton(self.cbFrame, text="Message", variable=self.message)
+        self.warningCB = Checkbutton(self.cbFrame, text="Warning", variable=self.warning, onvalue="Warning", offvalue="")
+        self.errorCB   = Checkbutton(self.cbFrame, text="Error", variable=self.error, offvalue="", onvalue="Error")
+        self.buttonCB  = Checkbutton(self.cbFrame, text="Button", variable=self.button, offvalue="", onvalue="Button")
+        self.messageCB = Checkbutton(self.cbFrame, text="Message", variable=self.message, offvalue="", onvalue="Message")
         self.pngRB     = Radiobutton(self.cbFrame, text=".png", variable=self.extensionVar, value=".png")
         self.jpgRB     = Radiobutton(self.cbFrame, text=".jpg", variable=self.extensionVar, value=".jpg")
         self.sufixLabel = Label(self.cbFrame, text="Adicionar sufixo: ")
@@ -71,12 +73,15 @@ class GUI:
         self.saveButton.grid(row=0, column=0, padx=5)
         self.ocrButton.grid(row=0, column=1, padx=5)
         
-
-
     @classmethod
     def update_current_image(self):
         status = subprocess.call([MINICAP, "-captureregselect", "-exit", "-save", "..\\preview.png"])
         return status
+    
+    @classmethod
+    def write_sufixes(self):
+        pass
+    
     
     def update_preview_widget(self, event):
         status = self.update_current_image()
@@ -84,7 +89,20 @@ class GUI:
             self.previewImg = ImageTk.PhotoImage(Image.open(self.pathToPreviewImg))
             self.preview.configure(image=self.previewImg)
             self.preview.image = self.previewImg
+            print("Updated preview widget")
         return status
+
+    def run_ocr(self):
+        return 0
+    
+    def update_name_entry(self, event):
+        ocr_status = self.run_ocr()
+        if (ocr_status == 0):
+            print("OCR failed.")
+            print("Adding sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.extensionVar.get()]))
+            self.fileName.set(self.warning.get() + self.error.get() + self.button.get() + self.extensionVar.get())
+        else:
+            pass
 
 def main():
     root = Tk()
