@@ -2,7 +2,9 @@ import os
 import subprocess
 from tkinter import Tk, Label, Button, Entry, StringVar, Frame, Checkbutton, RIDGE, X, LEFT, Radiobutton, N, IntVar
 from PIL import ImageTk, Image
+import pytesseract
 
+pytesseract.pytesseract.tesseract_cmd = 'B:/dev/ImageGrabber/env/Tesseract-OCR/tesseract'
 MINICAP = os.getcwd() + "\\bin\\MiniCap.exe"
 
 
@@ -41,10 +43,10 @@ class GUI:
         self.nameEntry = Entry(self.i2frame, textvariable=self.fileName, bg='white')
         self.nameLabel = Label(self.i2frame, text='Nome do arquivo: ')
         self.cbFrame   = Frame(self.i2frame, bd=1, relief=RIDGE)
-        self.warningCB = Checkbutton(self.cbFrame, text="Warning", variable=self.warning, onvalue="Warning", offvalue="")
-        self.errorCB   = Checkbutton(self.cbFrame, text="Error", variable=self.error, offvalue="", onvalue="Error")
-        self.buttonCB  = Checkbutton(self.cbFrame, text="Button", variable=self.button, offvalue="", onvalue="Button")
-        self.messageCB = Checkbutton(self.cbFrame, text="Message", variable=self.message, offvalue="", onvalue="Message")
+        self.warningCB = Checkbutton(self.cbFrame, text="Warning", variable=self.warning, onvalue="_warning", offvalue="")
+        self.errorCB   = Checkbutton(self.cbFrame, text="Error", variable=self.error, offvalue="", onvalue="_error")
+        self.buttonCB  = Checkbutton(self.cbFrame, text="Button", variable=self.button, offvalue="", onvalue="_button")
+        self.messageCB = Checkbutton(self.cbFrame, text="Message", variable=self.message, offvalue="", onvalue="_message")
         self.pngRB     = Radiobutton(self.cbFrame, text=".png", variable=self.extensionVar, value=".png")
         self.jpgRB     = Radiobutton(self.cbFrame, text=".jpg", variable=self.extensionVar, value=".jpg")
         self.sufixLabel = Label(self.cbFrame, text="Adicionar sufixo: ")
@@ -78,11 +80,7 @@ class GUI:
         status = subprocess.call([MINICAP, "-captureregselect", "-exit", "-save", "..\\preview.png"])
         return status
     
-    @classmethod
-    def write_sufixes(self):
-        pass
-    
-    
+ 
     def update_preview_widget(self, event):
         status = self.update_current_image()
         if(status == 0):
@@ -92,17 +90,17 @@ class GUI:
             print("Updated preview widget")
         return status
 
-    def run_ocr(self):
-        return 0
-    
     def update_name_entry(self, event):
-        ocr_status = self.run_ocr()
-        if (ocr_status == 0):
+        ocr_string = pytesseract.image_to_string(Image.open('preview.png'))
+        if (ocr_string == ""):
             print("OCR failed.")
-            print("Adding sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.extensionVar.get()]))
+            print("Adding only sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.extensionVar.get()]))
             self.fileName.set(self.warning.get() + self.error.get() + self.button.get() + self.extensionVar.get())
         else:
-            pass
+            print("ocr_string: " + ocr_string)
+            ocr_string = ocr_string.replace(" ", "_")
+            print("Adding ocr_string and sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.extensionVar.get()]))
+            self.fileName.set(ocr_string + self.warning.get() + self.error.get() + self.button.get() + self.extensionVar.get())
 
 def main():
     root = Tk()
