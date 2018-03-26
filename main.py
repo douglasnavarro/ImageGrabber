@@ -1,8 +1,12 @@
+# pylint: disable=W0612, E1120, W0614
+import sys
 import os
 import subprocess
-from tkinter import Tk, Label, Button, Entry, StringVar, Frame, Checkbutton, RIDGE, X, LEFT, Radiobutton, N, IntVar
+from tkinter import * 
+from tkinter import messagebox
 from PIL import ImageTk, Image
 import pytesseract
+import traceback
 
 pytesseract.pytesseract.tesseract_cmd = os.getcwd() + '/bin/Tesseract-OCR/tesseract'
 MINICAP = os.getcwd() + "\\bin\\MiniCap.exe"
@@ -10,10 +14,11 @@ MINICAP = os.getcwd() + "\\bin\\MiniCap.exe"
 
 class GUI:
     def __init__(self, master):
-
-        # we need these attributes to build file name based on checkboxes and radiobutton
         self.master = master
         master.title("Eu quero ibagens")
+        master.report_callback_exception = self.report_callback_exception
+
+        # we need these attributes to build file name based on checkboxes and radiobutton
         self.warning = StringVar()
         self.error = StringVar()
         self.button = StringVar()
@@ -127,9 +132,18 @@ class GUI:
         Adds '\\' to end of path inserted by user for more intuitive usage
         """
         image = Image.open(self.pathToPreviewImg)
-        image.save(self.path.get() + "\\" + self.fileName.get())
+        try:
+            image.save(self.path.get() + "\\" + self.fileName.get())
+            print("Saved " + self.path.get() + "\\" + self.fileName.get())
+        except FileNotFoundError as err:
+            messagebox.showerror('File not found error:', err)
+        
         image.close()
-        print("Saved " + self.path.get() + "\\" + self.fileName.get())
+        
+    
+    def report_callback_exception(self, *args):
+        err = traceback.format_exception(*args)
+        messagebox.showerror('Exception: ', err)
 
 def main():
     root = Tk()
