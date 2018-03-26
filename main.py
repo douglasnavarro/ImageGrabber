@@ -16,6 +16,7 @@ class GUI:
         self.error = StringVar()
         self.button = StringVar()
         self.message = StringVar()
+        self.success = StringVar()
         self.extensionVar = StringVar()
         self.extensionVar.set(".png")
 
@@ -31,13 +32,14 @@ class GUI:
         self.ssButton   = Button(master, text="Capturar ibagem")
         self.ssButton.bind('<Button-1>', self.update_preview_widget)
         self.saveButton = Button(self.lowerButtonsFrame, text='Salvar ibagem')
+        self.saveButton.bind('<Button-1>', self.save_image)
         self.ocrButton = Button(self.lowerButtonsFrame, text='Rodar OCR')
         self.ocrButton.bind('<Button-1>', self.update_name_entry)
         
         self.iframe = Frame(master, bd=2, relief=RIDGE)
         self.pathLabel = Label(self.iframe, text='Destino: ')
         self.pathEntry = Entry(self.iframe, textvariable=self.path, bg='white')
-        self.path.set(r"C:\Scripts\Imagens")
+        self.path.set("C:\\Scripts\\Imagens")
 
         self.i2frame   = Frame(master, bd=2, relief=RIDGE)
         self.nameEntry = Entry(self.i2frame, textvariable=self.fileName, bg='white')
@@ -47,6 +49,7 @@ class GUI:
         self.errorCB   = Checkbutton(self.cbFrame, text="Error", variable=self.error, offvalue="", onvalue="_error")
         self.buttonCB  = Checkbutton(self.cbFrame, text="Button", variable=self.button, offvalue="", onvalue="_button")
         self.messageCB = Checkbutton(self.cbFrame, text="Message", variable=self.message, offvalue="", onvalue="_message")
+        self.successCB = Checkbutton(self.cbFrame, text="Success", variable=self.success, offvalue="", onvalue="_success")
         self.pngRB     = Radiobutton(self.cbFrame, text=".png", variable=self.extensionVar, value=".png")
         self.jpgRB     = Radiobutton(self.cbFrame, text=".jpg", variable=self.extensionVar, value=".jpg")
         self.sufixLabel = Label(self.cbFrame, text="Adicionar sufixo: ")
@@ -68,8 +71,9 @@ class GUI:
         self.errorCB.grid(row=0, column=2)
         self.buttonCB.grid(row=0, column=3)
         self.messageCB.grid(row=0, column=4)
-        self.pngRB.grid(row=0, column=5)
-        self.jpgRB.grid(row=0, column=6)
+        self.successCB.grid(row=0, column=5)
+        self.pngRB.grid(row=0, column=6)
+        self.jpgRB.grid(row=0, column=7)
 
         self.lowerButtonsFrame.pack(pady=5)
         self.saveButton.grid(row=0, column=0, padx=5)
@@ -99,8 +103,12 @@ class GUI:
         else:
             print("ocr_string: " + ocr_string)
             ocr_string = ocr_string.replace(" ", "_")
-            print("Adding ocr_string and sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.extensionVar.get()]))
-            self.fileName.set(ocr_string + self.warning.get() + self.error.get() + self.button.get() + self.message.get() + self.extensionVar.get())
+            print("Adding ocr_string and sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.success.get(), self.extensionVar.get()]))
+            self.fileName.set(ocr_string + self.warning.get() + self.error.get() + self.success.get()+ self.button.get() + self.message.get()  + self.extensionVar.get())
+    
+    def save_image(self, event):
+        Image.open(self.pathToPreviewImg).save(self.path.get() + "\\" + self.fileName.get())
+        print("Saved " + self.path.get() + "\\" + self.fileName.get())
 
 def main():
     root = Tk()
