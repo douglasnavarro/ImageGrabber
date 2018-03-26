@@ -95,12 +95,12 @@ class GUI:
         if (ocr_string == ""):
             print("OCR failed.")
             print("Adding only sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.extensionVar.get()]))
-            self.fileName.set(self.warning.get() + self.error.get() + self.button.get() + self.extensionVar.get())
+            self.fileName.set(self.warning.get() + self.error.get() + self.button.get() + self.message.get() + self.extensionVar.get())
         else:
             print("ocr_string: " + ocr_string)
             ocr_string = ocr_string.replace(" ", "_")
             print("Adding ocr_string and sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.extensionVar.get()]))
-            self.fileName.set(ocr_string + self.warning.get() + self.error.get() + self.button.get() + self.extensionVar.get())
+            self.fileName.set(ocr_string + self.warning.get() + self.error.get() + self.button.get() + self.message.get() + self.extensionVar.get())
 
 def main():
     root = Tk()
