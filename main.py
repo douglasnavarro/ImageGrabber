@@ -10,6 +10,8 @@ MINICAP = os.getcwd() + "\\bin\\MiniCap.exe"
 
 class GUI:
     def __init__(self, master):
+
+        # we need these attributes to build file name based on checkboxes and radiobutton
         self.master = master
         master.title("Eu quero ibagens")
         self.warning = StringVar()
@@ -81,11 +83,20 @@ class GUI:
         
     @classmethod
     def update_current_image(self):
+        """
+        Runs minicap to save a temporary image
+        Returns 0 for success
+        """
         status = subprocess.call([MINICAP, "-captureregselect", "-exit", "-save", "..\\preview.png"])
         return status
     
  
     def update_preview_widget(self, event):
+        """
+        Updates preview image inside the GUI
+        Takes screenshot using minicap through update_current_image
+        and then updates tk variable previewImg
+        """
         status = self.update_current_image()
         if(status == 0):
             self.previewImg = ImageTk.PhotoImage(Image.open(self.pathToPreviewImg))
@@ -95,6 +106,10 @@ class GUI:
         return status
 
     def update_name_entry(self, event):
+        """
+        Updates file name field using OCR string from image and checkboxes for sufixes
+        If OCR fails an empty string is used
+        """
         ocr_string = pytesseract.image_to_string(Image.open('preview.png'))
         if (ocr_string == ""):
             print("OCR failed.")
@@ -107,6 +122,10 @@ class GUI:
             self.fileName.set(ocr_string + self.warning.get() + self.error.get() + self.success.get()+ self.button.get() + self.message.get()  + self.extensionVar.get())
     
     def save_image(self, event):
+        """
+        Saves current preview image to new file using path and name from user input
+        Adds '\\' to end of path inserted by user for more intuitive usage
+        """
         image = Image.open(self.pathToPreviewImg)
         image.save(self.path.get() + "\\" + self.fileName.get())
         image.close()
