@@ -107,7 +107,9 @@ class GUI:
             self.fileName.set(ocr_string + self.warning.get() + self.error.get() + self.success.get()+ self.button.get() + self.message.get()  + self.extensionVar.get())
     
     def save_image(self, event):
-        Image.open(self.pathToPreviewImg).save(self.path.get() + "\\" + self.fileName.get())
+        image = Image.open(self.pathToPreviewImg)
+        image.save(self.path.get() + "\\" + self.fileName.get())
+        image.close()
         print("Saved " + self.path.get() + "\\" + self.fileName.get())
 
 def main():
