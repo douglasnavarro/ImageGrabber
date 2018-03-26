@@ -4,7 +4,7 @@ from tkinter import Tk, Label, Button, Entry, StringVar, Frame, Checkbutton, RID
 from PIL import ImageTk, Image
 import pytesseract
 
-pytesseract.pytesseract.tesseract_cmd = 'B:/dev/ImageGrabber/env/Tesseract-OCR/tesseract'
+pytesseract.pytesseract.tesseract_cmd = os.getcwd() + '/bin/Tesseract-OCR/tesseract'
 MINICAP = os.getcwd() + "\\bin\\MiniCap.exe"
 
 
