@@ -11,7 +11,6 @@ import traceback
 pytesseract.pytesseract.tesseract_cmd = os.getcwd() + '/bin/Tesseract-OCR/tesseract'
 MINICAP = os.getcwd() + "\\bin\\MiniCap.exe"
 
-
 class GUI:
     def __init__(self, master):
         self.master = master
@@ -95,7 +94,6 @@ class GUI:
         status = subprocess.call([MINICAP, "-captureregselect", "-exit", "-save", "..\\preview.png"])
         return status
     
- 
     def update_preview_widget(self, event):
         """
         Updates preview image inside the GUI
@@ -140,7 +138,6 @@ class GUI:
         
         image.close()
         
-    
     def report_callback_exception(self, *args):
         err = traceback.format_exception(*args)
         messagebox.showerror('Exception: ', err)
