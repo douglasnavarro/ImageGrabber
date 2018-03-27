@@ -14,7 +14,7 @@ MINICAP = os.getcwd() + "\\bin\\MiniCap.exe"
 class GUI:
     def __init__(self, master):
         self.master = master
-        master.title("Eu quero ibagens")
+        master.title("Image grabber")
         master.report_callback_exception = self.report_callback_exception
 
         # we need these attributes to build file name based on checkboxes and radiobutton
@@ -35,21 +35,21 @@ class GUI:
         self.preview = Label(master, image = self.previewImg)
 
         self.lowerButtonsFrame = Frame(master, bd=0)
-        self.ssButton   = Button(master, text="Capturar ibagem")
+        self.ssButton   = Button(master, text="Take screenshot")
         self.ssButton.bind('<Button-1>', self.update_preview_widget)
-        self.saveButton = Button(self.lowerButtonsFrame, text='Salvar ibagem')
+        self.saveButton = Button(self.lowerButtonsFrame, text='Save')
         self.saveButton.bind('<Button-1>', self.save_image)
-        self.ocrButton = Button(self.lowerButtonsFrame, text='Rodar OCR')
+        self.ocrButton = Button(self.lowerButtonsFrame, text='Run OCR')
         self.ocrButton.bind('<Button-1>', self.update_name_entry)
         
         self.iframe = Frame(master, bd=2, relief=RIDGE)
-        self.pathLabel = Label(self.iframe, text='Destino: ')
+        self.pathLabel = Label(self.iframe, text='Destination folder: ')
         self.pathEntry = Entry(self.iframe, textvariable=self.path, bg='white')
         self.path.set("C:\\Scripts\\Imagens")
 
         self.i2frame   = Frame(master, bd=2, relief=RIDGE)
         self.nameEntry = Entry(self.i2frame, textvariable=self.fileName, bg='white')
-        self.nameLabel = Label(self.i2frame, text='Nome do arquivo: ')
+        self.nameLabel = Label(self.i2frame, text='File Name: ')
         self.cbFrame   = Frame(self.i2frame, bd=1, relief=RIDGE)
         self.warningCB = Checkbutton(self.cbFrame, text="Warning", variable=self.warning, onvalue="_warning", offvalue="")
         self.errorCB   = Checkbutton(self.cbFrame, text="Error", variable=self.error, offvalue="", onvalue="_error")
@@ -58,7 +58,7 @@ class GUI:
         self.successCB = Checkbutton(self.cbFrame, text="Success", variable=self.success, offvalue="", onvalue="_success")
         self.pngRB     = Radiobutton(self.cbFrame, text=".png", variable=self.extensionVar, value=".png")
         self.jpgRB     = Radiobutton(self.cbFrame, text=".jpg", variable=self.extensionVar, value=".jpg")
-        self.sufixLabel = Label(self.cbFrame, text="Adicionar sufixo: ")
+        self.sufixLabel = Label(self.cbFrame, text="Add sufixes: ")
 
         # Layout of widgets
         self.ssButton.pack(pady=5)
