@@ -35,12 +35,9 @@ class GUI:
         self.preview = Label(master, image = self.previewImg)
 
         self.lowerButtonsFrame = Frame(master, bd=0)
-        self.ssButton   = Button(master, text="Take screenshot")
-        self.ssButton.bind('<Button-1>', self.update_preview_widget)
-        self.saveButton = Button(self.lowerButtonsFrame, text='Save')
-        self.saveButton.bind('<Button-1>', self.save_image)
-        self.ocrButton = Button(self.lowerButtonsFrame, text='Run OCR')
-        self.ocrButton.bind('<Button-1>', self.update_name_entry)
+        self.ssButton   = Button(master, text="Take screenshot", command=self.update_preview_widget)
+        self.saveButton = Button(self.lowerButtonsFrame, text='Save', command=self.save_image)
+        self.ocrButton = Button(self.lowerButtonsFrame, text='Run OCR', command=self.update_name_entry)
         
         self.iframe = Frame(master, bd=2, relief=RIDGE)
         self.pathLabel = Label(self.iframe, text='Destination folder: ')
@@ -94,7 +91,7 @@ class GUI:
         status = subprocess.call([MINICAP, "-captureregselect", "-exit", "-save", "..\\preview.png"])
         return status
     
-    def update_preview_widget(self, event):
+    def update_preview_widget(self):
         """
         Updates preview image inside the GUI
         Takes screenshot using minicap through update_current_image
@@ -108,7 +105,7 @@ class GUI:
             print("Updated preview widget")
         return status
 
-    def update_name_entry(self, event):
+    def update_name_entry(self):
         """
         Updates file name field using OCR string from image and checkboxes for sufixes
         If OCR fails an empty string is used
@@ -124,7 +121,7 @@ class GUI:
             print("Adding ocr_string and sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.success.get(), self.extensionVar.get()]))
             self.fileName.set(ocr_string + self.warning.get() + self.error.get() + self.success.get()+ self.button.get() + self.message.get()  + self.extensionVar.get())
     
-    def save_image(self, event):
+    def save_image(self):
         """
         Saves current preview image to new file using path and name from user input
         Adds '\\' to end of path inserted by user for more intuitive usage
