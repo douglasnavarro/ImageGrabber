@@ -122,7 +122,7 @@ class GUI:
         Updates file name field using OCR string from image and checkboxes for sufixes
         If OCR fails an empty string is used
         """
-        ocr_string = pytesseract.image_to_string(Image.open('preview.png'))
+        ocr_string = pytesseract.image_to_string(Image.open(resource_path('preview.png')))
         if (ocr_string == ""):
             print("OCR failed.")
             print("Adding only sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.extensionVar.get()]))
