@@ -6,7 +6,7 @@ block_cipher = None
 a = Analysis(['main.py'],
              pathex=['B:\\dev\\ImageGrabber'],
              binaries=[],
-             datas=[],
+             datas=[('preview.png', '.')],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
@@ -18,8 +18,6 @@ a = Analysis(['main.py'],
 
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
-
-a.datas += [('preview.png', 'B:\\dev\\ImageGrabber', 'DATA')]
 
 exe = EXE(pyz,
           a.scripts,
