@@ -1,3 +1,5 @@
 env
 .vscode
 preview.png
+prod
+build
