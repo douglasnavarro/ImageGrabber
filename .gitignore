@@ -3,3 +3,4 @@ env
 preview.png
 prod
 build
+__pycache__
