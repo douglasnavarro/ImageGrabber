@@ -8,8 +8,20 @@ from PIL import ImageTk, Image
 import pytesseract
 import traceback
 
-pytesseract.pytesseract.tesseract_cmd = os.getcwd() + '/bin/Tesseract-OCR/tesseract'
-MINICAP = os.getcwd() + "\\bin\\MiniCap.exe"
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
+pytesseract.pytesseract.tesseract_cmd = resource_path('/bin/Tesseract-OCR/tesseract')
+MINICAP = resource_path("\\bin\\MiniCap.exe")
+
 
 class GUI:
     def __init__(self, master):
@@ -29,7 +41,7 @@ class GUI:
         # Creation of widgets
         self.path = StringVar()
         self.fileName = StringVar()
-        self.pathToPreviewImg = "preview.png"
+        self.pathToPreviewImg = resource_path("preview.png")
         self.previewImg = ImageTk.PhotoImage(Image.open(self.pathToPreviewImg))
 
         self.preview = Label(master, image = self.previewImg)
