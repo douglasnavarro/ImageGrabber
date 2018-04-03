@@ -15,10 +15,11 @@ a = Analysis(['main.py'],
              win_private_assemblies=False,
              cipher=block_cipher)
 
-a.datas += [('preview.png', 'B:\\dev\\ImageGrabber', 'DATA'), ('icon.png', 'B:\\dev\\ImageGrabber', 'DATA')]
+
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 
+a.datas += [('preview.png', 'B:\\dev\\ImageGrabber', 'DATA')]
 
 exe = EXE(pyz,
           a.scripts,
@@ -30,5 +31,4 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           runtime_tmpdir=None,
-          console=False,
-          icon='B:\\dev\\ImageGrabber\\icon.png')
+          console=False)
