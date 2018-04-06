@@ -19,15 +19,15 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
-pytesseract.pytesseract.tesseract_cmd = resource_path('/bin/Tesseract-OCR/tesseract')
-MINICAP = resource_path("\\bin\\MiniCap.exe")
+pytesseract.pytesseract.tesseract_cmd = resource_path('bin\\Tesseract-OCR\\tesseract')
+MINICAP = resource_path("bin\\MiniCap.exe")
 
 
 class GUI:
     def __init__(self, master):
         self.master = master
-        master.title("Quick image grabber")
-        master.report_callback_exception = self.report_callback_exception
+        self.master.title("Quick image grabber")
+        self.master.report_callback_exception = self.report_callback_exception
 
         # we need these attributes to build file name based on checkboxes and radiobutton
         self.warning = StringVar()
@@ -94,13 +94,14 @@ class GUI:
         self.saveButton.grid(row=0, column=0, padx=5)
         self.ocrButton.grid(row=0, column=1, padx=5)
         
-    @classmethod
     def update_current_image(self):
         """
-        Runs minicap to save a temporary image
+        Minimizes gui and runs minicap to save a temporary image
         Returns 0 for success
         """
+        self.minimize()
         status = subprocess.call([MINICAP, "-captureregselect", "-exit", "-save", "..\\preview.png"])
+        self.restore()
         return status
     
     def update_preview_widget(self):
@@ -116,6 +117,19 @@ class GUI:
             self.preview.image = self.previewImg
             print("Updated preview widget")
         return status
+
+    def restore(self):
+        """
+        Restores window back to original size
+        """
+        self.master.wm_state('normal')
+
+    def minimize(self):
+        """
+        Minimizes window to the taskbar
+        """
+        self.master.wm_state('iconic')
+        print("Minimized!")
 
     def update_name_entry(self):
         """
