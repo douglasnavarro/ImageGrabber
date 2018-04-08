@@ -7,7 +7,9 @@ from tkinter import messagebox
 from PIL import ImageTk, Image
 import pytesseract
 import traceback
-
+import logging
+import tkinter.scrolledtext as ScrolledText
+from TextHandler import TextHandler
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -37,15 +39,13 @@ class GUI:
         self.success = StringVar()
         self.extensionVar = StringVar()
         self.extensionVar.set(".png")
-
-        # Creation of widgets
         self.path = StringVar()
         self.fileName = StringVar()
         self.pathToPreviewImg = resource_path("preview.png")
         self.previewImg = ImageTk.PhotoImage(Image.open(self.pathToPreviewImg))
 
+        # Creation of widgets
         self.preview = Label(master, image = self.previewImg)
-
         self.lowerButtonsFrame = Frame(master, bd=0)
         self.ssButton   = Button(master, text="Take screenshot", command=self.run_user_iteration)
         self.saveButton = Button(self.lowerButtonsFrame, text='Save', command=self.save_image)
@@ -93,8 +93,26 @@ class GUI:
         self.lowerButtonsFrame.pack(pady=5)
         self.saveButton.grid(row=0, column=0, padx=5)
         self.ocrButton.grid(row=0, column=1, padx=5)
+        
 
+        #Logging related
+        self.logWidget = ScrolledText.ScrolledText(master, state='disabled')
+        self.logWidget.configure(font='TkFixedFont')
+        self.logWidget.pack(pady=3)
 
+        formatter = logging.Formatter(fmt='[%(asctime)s] [%(levelname)-4s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        
+        text_handler = TextHandler(self.logWidget)
+        text_handler.setFormatter(formatter)
+
+        file_handler = logging.FileHandler('log.txt', mode='w')
+        file_handler.setFormatter(formatter)
+        
+        logger = logging.getLogger()
+        logger.setLevel(logging.INFO)
+        logger.addHandler(text_handler)
+        logger.addHandler(file_handler)
+                  
     def run_user_iteration(self):
         """
         Run basic user iteration:
@@ -123,37 +141,37 @@ class GUI:
         self.previewImg = ImageTk.PhotoImage(Image.open(self.pathToPreviewImg))
         self.preview.configure(image=self.previewImg)
         self.preview.image = self.previewImg
-        print("Updated preview widget")
+        logging.info("Updated preview widget")
 
     def restore(self):
         """
         Restores window back to original size
         """
         self.master.deiconify()
-        print("Restored!")
+        logging.info("Restored!")
 
     def minimize(self):
         """
         Minimizes window to the taskbar
         """
         self.master.iconify()
-        print("Minimized!")
+        logging.info("Minimized!")
 
     def update_name_entry(self):
         """
         Updates file name field using OCR string from image and checkboxes for sufixes
         If OCR fails an empty string is used
         """
-        print("Running ocr. This may take a few seconds...")
+        logging.info("Running ocr. This may take a few seconds...")
         ocr_string = pytesseract.image_to_string(Image.open(resource_path('preview.png')))
         if (ocr_string == ""):
-            print("OCR failed.")
-            print("Adding only sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.extensionVar.get()]))
+            logging.info("OCR failed.")
+            logging.info("Adding only sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.extensionVar.get()]))
             self.fileName.set(self.warning.get() + self.error.get() + self.button.get() + self.message.get() + self.extensionVar.get())
         else:
-            print("ocr_string: " + ocr_string)
+            logging.info("ocr_string: " + ocr_string)
             ocr_string = ocr_string.replace(" ", "_")
-            print("Adding ocr_string and sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.success.get(), self.extensionVar.get()]))
+            logging.info("Adding ocr_string and sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.success.get(), self.extensionVar.get()]))
             self.fileName.set(ocr_string + self.warning.get() + self.error.get() + self.success.get()+ self.button.get() + self.message.get()  + self.extensionVar.get())
     
     def save_image(self):
@@ -164,7 +182,7 @@ class GUI:
         image = Image.open(self.pathToPreviewImg)
         try:
             image.save(self.path.get() + "\\" + self.fileName.get())
-            print("Saved " + self.path.get() + "\\" + self.fileName.get())
+            logging.info("Saved " + self.path.get() + "\\" + self.fileName.get())
         except FileNotFoundError as err:
             messagebox.showerror('File not found error:', err)
         
