@@ -47,10 +47,10 @@ class GUI:
         self.preview = Label(master, image = self.previewImg)
 
         self.lowerButtonsFrame = Frame(master, bd=0)
-        self.ssButton   = Button(master, text="Take screenshot", command=self.update_preview_widget)
+        self.ssButton   = Button(master, text="Take screenshot", command=self.run_user_iteration)
         self.saveButton = Button(self.lowerButtonsFrame, text='Save', command=self.save_image)
         self.ocrButton = Button(self.lowerButtonsFrame, text='Run OCR', command=self.update_name_entry)
-        
+
         self.iframe = Frame(master, bd=2, relief=RIDGE)
         self.pathLabel = Label(self.iframe, text='Destination folder: ')
         self.pathEntry = Entry(self.iframe, textvariable=self.path, bg='white')
@@ -59,7 +59,7 @@ class GUI:
         self.i2frame   = Frame(master, bd=2, relief=RIDGE)
         self.nameEntry = Entry(self.i2frame, textvariable=self.fileName, bg='white')
         self.nameLabel = Label(self.i2frame, text='File Name: ')
-        self.cbFrame   = Frame(self.i2frame, bd=1, relief=RIDGE)
+        self.cbFrame   = Frame(master, bd=1, relief=RIDGE)
         self.warningCB = Checkbutton(self.cbFrame, text="Warning", variable=self.warning, onvalue="_warning", offvalue="")
         self.errorCB   = Checkbutton(self.cbFrame, text="Error", variable=self.error, offvalue="", onvalue="_error")
         self.buttonCB  = Checkbutton(self.cbFrame, text="Button", variable=self.button, offvalue="", onvalue="_button")
@@ -70,6 +70,7 @@ class GUI:
         self.sufixLabel = Label(self.cbFrame, text="Add sufixes: ")
 
         # Layout of widgets
+        self.cbFrame.pack(pady=3)
         self.ssButton.pack(pady=5)
         self.preview.pack(pady=5)
         self.iframe.pack(padx=50,fill=X)
@@ -79,7 +80,6 @@ class GUI:
         self.i2frame.pack(padx=50, fill=X)
         self.nameLabel.pack(side=LEFT, anchor=N, padx=5, pady=3)
         self.nameEntry.pack(padx=5, pady=3, fill=X)
-        self.cbFrame.pack(side=LEFT, pady=3)
 
         self.sufixLabel.grid(row=0, column=0)
         self.warningCB.grid(row=0, column=1)
@@ -93,15 +93,25 @@ class GUI:
         self.lowerButtonsFrame.pack(pady=5)
         self.saveButton.grid(row=0, column=0, padx=5)
         self.ocrButton.grid(row=0, column=1, padx=5)
+
+
+    def run_user_iteration(self):
+        """
+        Run basic user iteration:
+        Minimize GUI, take SS, restore GUI, run OCR
+        """
+        self.minimize()
+        self.update_current_image()
+        self.update_preview_widget()
+        self.restore()
+        self.update_name_entry()
         
     def update_current_image(self):
         """
-        Minimizes gui and runs minicap to save a temporary image
+        Runs minicap to save a temporary image
         Returns 0 for success
         """
-        self.minimize()
         status = subprocess.call([MINICAP, "-captureregselect", "-exit", "-save", "..\\preview.png"])
-        self.restore()
         return status
     
     def update_preview_widget(self):
@@ -110,25 +120,23 @@ class GUI:
         Takes screenshot using minicap through update_current_image
         and then updates tk variable previewImg
         """
-        status = self.update_current_image()
-        if(status == 0):
-            self.previewImg = ImageTk.PhotoImage(Image.open(self.pathToPreviewImg))
-            self.preview.configure(image=self.previewImg)
-            self.preview.image = self.previewImg
-            print("Updated preview widget")
-        return status
+        self.previewImg = ImageTk.PhotoImage(Image.open(self.pathToPreviewImg))
+        self.preview.configure(image=self.previewImg)
+        self.preview.image = self.previewImg
+        print("Updated preview widget")
 
     def restore(self):
         """
         Restores window back to original size
         """
-        self.master.wm_state('normal')
+        self.master.deiconify()
+        print("Restored!")
 
     def minimize(self):
         """
         Minimizes window to the taskbar
         """
-        self.master.wm_state('iconic')
+        self.master.iconify()
         print("Minimized!")
 
     def update_name_entry(self):
@@ -136,6 +144,7 @@ class GUI:
         Updates file name field using OCR string from image and checkboxes for sufixes
         If OCR fails an empty string is used
         """
+        print("Running ocr. This may take a few seconds...")
         ocr_string = pytesseract.image_to_string(Image.open(resource_path('preview.png')))
         if (ocr_string == ""):
             print("OCR failed.")
