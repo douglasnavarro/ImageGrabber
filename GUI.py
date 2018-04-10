@@ -98,15 +98,16 @@ class GUI:
         #Logging related
         self.logWidget = ScrolledText.ScrolledText(master, state='disabled')
         self.logWidget.configure(font='TkFixedFont')
-        self.logWidget.pack(pady=3)
+        self.logWidget.pack(pady=3, fill=X)
 
-        formatter = logging.Formatter(fmt='[%(asctime)s] [%(levelname)-4s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        file_formatter = logging.Formatter(fmt='[%(asctime)s] [%(levelname)-4s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        widget_formater = logging.Formatter(fmt='[%(asctime)s] %(message)s', datefmt='%H:%M:%S')
         
         text_handler = TextHandler(self.logWidget)
-        text_handler.setFormatter(formatter)
+        text_handler.setFormatter(widget_formater)
 
         file_handler = logging.FileHandler('log.txt', mode='w')
-        file_handler.setFormatter(formatter)
+        file_handler.setFormatter(file_formatter)
         
         logger = logging.getLogger()
         logger.setLevel(logging.INFO)
