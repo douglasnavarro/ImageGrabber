@@ -10,6 +10,8 @@ import traceback
 import logging
 import tkinter.scrolledtext as ScrolledText
 from TextHandler import TextHandler
+import threading
+import queue as Queue
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -163,18 +165,25 @@ class GUI:
         Updates file name field using OCR string from image and checkboxes for sufixes
         If OCR fails an empty string is used
         """
-        logging.info("Running ocr. This may take a few seconds...")
-        ocr_string = pytesseract.image_to_string(Image.open(resource_path('preview.png')))
-        if (ocr_string == ""):
-            logging.info("OCR failed.")
-            logging.info("Adding only sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.extensionVar.get()]))
-            self.fileName.set(self.warning.get() + self.error.get() + self.button.get() + self.message.get() + self.extensionVar.get())
-        else:
-            logging.info("ocr_string: " + ocr_string)
-            ocr_string = ocr_string.replace(" ", "_")
-            logging.info("Adding ocr_string and sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.success.get(), self.extensionVar.get()]))
-            self.fileName.set(ocr_string + self.warning.get() + self.error.get() + self.success.get()+ self.button.get() + self.message.get()  + self.extensionVar.get())
-    
+        self.queue = Queue.Queue()
+        ThreadedOCR(self.queue).start()
+        self.master.after(100, self.process_queue)
+
+    def process_queue(self):
+        try:
+            ocr_string = self.queue.get(0)
+            if (ocr_string == ""):
+                logging.info("OCR yielded no result.")
+                logging.info("Adding only sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.extensionVar.get()]))
+                self.fileName.set(self.warning.get() + self.error.get() + self.button.get() + self.message.get() + self.extensionVar.get())
+            else:
+                logging.info("OCR result: " + ocr_string)
+                ocr_string = ocr_string.replace(" ", "_")
+                logging.info("Adding ocr_string and sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.success.get(), self.extensionVar.get()]))
+                self.fileName.set(ocr_string + self.warning.get() + self.error.get() + self.success.get()+ self.button.get() + self.message.get()  + self.extensionVar.get())
+        except Queue.Empty:
+            self.master.after(100, self.process_queue)
+
     def save_image(self):
         """
         Saves current preview image to new file using path and name from user input
@@ -192,3 +201,12 @@ class GUI:
     def report_callback_exception(self, *args):
         err = traceback.format_exception(*args)
         messagebox.showerror('Exception: ', err)
+
+class ThreadedOCR(threading.Thread):
+    def __init__(self, queue):
+        threading.Thread.__init__(self)
+        self.queue = queue
+    def run(self):
+        logging.info("Running ocr. This may take a few seconds...")
+        ocr_string = pytesseract.image_to_string(Image.open(resource_path('preview.png')))      
+        self.queue.put(ocr_string)
