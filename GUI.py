@@ -25,6 +25,7 @@ def resource_path(relative_path):
 
 pytesseract.pytesseract.tesseract_cmd = resource_path('bin\\Tesseract-OCR\\tesseract')
 MINICAP = resource_path("bin\\MiniCap.exe")
+window_icon = resource_path("icon.ico")
 
 
 class GUI:
@@ -32,6 +33,7 @@ class GUI:
         self.master = master
         self.master.title("Quick image grabber")
         self.master.report_callback_exception = self.report_callback_exception
+        self.master.iconbitmap(window_icon)
 
         # we need these attributes to build file name based on checkboxes and radiobutton
         self.warning = StringVar()
@@ -208,5 +210,5 @@ class ThreadedOCR(threading.Thread):
         self.queue = queue
     def run(self):
         logging.info("Running ocr. This may take a few seconds...")
-        ocr_string = pytesseract.image_to_string(Image.open(resource_path('preview.png')))      
+        ocr_string = pytesseract.image_to_string(Image.open(resource_path('preview.png')))
         self.queue.put(ocr_string)
