@@ -4,7 +4,7 @@ import os
 import subprocess
 from tkinter import * 
 from tkinter import messagebox
-from PIL import ImageTk, Image
+from PIL import ImageTk, Image, ImageEnhance
 import pytesseract
 import traceback
 import logging
@@ -12,6 +12,7 @@ import tkinter.scrolledtext as ScrolledText
 from TextHandler import TextHandler
 import threading
 import queue as Queue
+import time
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -46,6 +47,7 @@ class GUI:
         self.path = StringVar()
         self.fileName = StringVar()
         self.pathToPreviewImg = resource_path("preview.png")
+        self.pathToProcessedImg = resource_path("processed.png")
         self.previewImg = ImageTk.PhotoImage(Image.open(self.pathToPreviewImg))
 
         # Creation of widgets
@@ -124,6 +126,7 @@ class GUI:
         Minimize GUI, take SS, restore GUI, run OCR
         """
         self.minimize()
+        time.sleep(0.2)
         self.update_current_image()
         self.update_preview_widget()
         self.restore()
@@ -146,7 +149,9 @@ class GUI:
         self.previewImg = ImageTk.PhotoImage(Image.open(self.pathToPreviewImg))
         self.preview.configure(image=self.previewImg)
         self.preview.image = self.previewImg
-        logging.info("Updated preview widget")
+        logging.info("Updated preview widget.")
+        with Image.open(self.pathToPreviewImg) as img:
+            logging.info("Image size = {:d} x {:d} pixels".format(img.size[0], img.size[1]))
 
     def restore(self):
         """
@@ -199,7 +204,7 @@ class GUI:
             messagebox.showerror('File not found error:', err)
         
         image.close()
-        
+    
     def report_callback_exception(self, *args):
         err = traceback.format_exception(*args)
         messagebox.showerror('Exception: ', err)
@@ -209,6 +214,21 @@ class ThreadedOCR(threading.Thread):
         threading.Thread.__init__(self)
         self.queue = queue
     def run(self):
-        logging.info("Running ocr. This may take a few seconds...")
-        ocr_string = pytesseract.image_to_string(Image.open(resource_path('preview.png')))
-        self.queue.put(ocr_string)
+        with Image.open(resource_path('preview.png')) as img:
+            processed_img = img.convert('L')
+            processed_img = self.resize_img(processed_img, 2)
+            processed_img = self.increase_contrast(processed_img)
+            #processed_img.show()
+            logging.info("Running ocr. This may take a few seconds...")
+            ocr_string = pytesseract.image_to_string(processed_img)
+            self.queue.put(ocr_string)
+    
+    def increase_contrast(self, img):
+        logging.info("Increasing img contrast...")
+        contrast = ImageEnhance.Contrast(img)
+        return contrast.enhance(10)
+    
+    def resize_img(self, img, factor):
+        return img.resize((img.size[0]*factor, img.size[1]*factor), Image.ANTIALIAS)
+
+
