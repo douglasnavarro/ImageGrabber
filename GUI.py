@@ -125,12 +125,14 @@ class GUI:
         Run basic user iteration:
         Minimize GUI, take SS, restore GUI, run OCR
         """
+        logging.info("-----Started user interaction-----")
         self.minimize()
         time.sleep(0.2)
         self.update_current_image()
         self.update_preview_widget()
         self.restore()
         self.update_name_entry()
+        logging.info("-----Ended user interaction-----")
         
     def update_current_image(self):
         """
