@@ -25,6 +25,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 pytesseract.pytesseract.tesseract_cmd = resource_path('bin\\Tesseract-OCR\\tesseract')
+tessdata_dir_config = '--tessdata-dir \"' + resource_path('bin\\Tesseract-OCR\\tessdata') + "\""
 MINICAP = resource_path("bin\\MiniCap.exe")
 window_icon = resource_path("icon.ico")
 
@@ -112,32 +113,30 @@ class GUI:
         text_handler = TextHandler(self.logWidget)
         text_handler.setFormatter(widget_formater)
 
-        file_handler = logging.FileHandler('log.txt', mode='a')
+        file_handler = logging.FileHandler('log.txt', mode='w')
         file_handler.setFormatter(file_formatter)
         
         logger = logging.getLogger()
-        logger.setLevel(logging.DEBUG)
+        logger.setLevel(logging.INFO)
         logger.addHandler(text_handler)
         logger.addHandler(file_handler)
 
-        logging.debug("PyTesseract files exported to: " + pytesseract.pytesseract.tesseract_cmd)
-        logging.debug("Minicap files exported to: " + MINICAP)
-
+        logging.debug("Path to minicap: " + MINICAP)
+        logging.debug("Path to tesseract.exe: " + pytesseract.pytesseract.tesseract_cmd)
                   
     def run_user_iteration(self):
         """
         Run basic user iteration:
         Minimize GUI, take SS, restore GUI, run OCR
         """
-
-        logging.info("-----Started user interaction-----")
+        logging.info("------Started interaction------")
         self.minimize()
         time.sleep(0.2)
         self.update_current_image()
         self.update_preview_widget()
         self.restore()
+        logging.info("------Finished interaction------")
         self.update_name_entry()
-        logging.info("-----Ended user interaction-----")
         
     def update_current_image(self):
         """
@@ -188,13 +187,13 @@ class GUI:
             ocr_string = self.queue.get(0)
             if (ocr_string == ""):
                 logging.info("OCR yielded no result.")
-                logging.info("Adding only sufixes: " + " ".join([self.warning.get(), self.error.get(), self.success.get(), self.button.get(), self.extensionVar.get()]))
-                self.fileName.set(self.warning.get() + self.error.get() + self.success.get() + self.button.get() + self.message.get() + self.extensionVar.get())
+                logging.info("Adding only sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.extensionVar.get()]))
+                self.fileName.set(self.warning.get() + self.error.get() + self.button.get() + self.message.get() + self.extensionVar.get())
             else:
                 logging.info("OCR result: " + ocr_string)
                 ocr_string = ocr_string.replace(" ", "_")
-                logging.info("Adding ocr_string and sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.success.get(), self.message.get(), self.extensionVar.get()]))
-                self.fileName.set(ocr_string + self.warning.get() + self.error.get() + self.success.get() + self.button.get() + self.message.get()  + self.extensionVar.get())
+                logging.info("Adding ocr_string and sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.success.get(), self.extensionVar.get()]))
+                self.fileName.set(ocr_string + self.warning.get() + self.error.get() + self.success.get()+ self.button.get() + self.message.get()  + self.extensionVar.get())
         except Queue.Empty:
             self.master.after(100, self.process_queue)
 
@@ -203,12 +202,14 @@ class GUI:
         Saves current preview image to new file using path and name from user input
         Adds '\\' to end of path inserted by user for more intuitive usage
         """
-        with Image.open(self.pathToPreviewImg) as img:
-            try:
-                img.save(self.path.get() + "\\" + self.fileName.get())
-                logging.info("Saved " + self.path.get() + "\\" + self.fileName.get())
-            except FileNotFoundError as err:
-                messagebox.showerror('File not found error:', err)
+        image = Image.open(self.pathToPreviewImg)
+        try:
+            image.save(self.path.get() + "\\" + self.fileName.get())
+            logging.info("Saved " + self.path.get() + "\\" + self.fileName.get())
+        except FileNotFoundError as err:
+            messagebox.showerror('File not found error:', err)
+        
+        image.close()
     
     def report_callback_exception(self, *args):
         err = traceback.format_exception(*args)
@@ -225,10 +226,12 @@ class ThreadedOCR(threading.Thread):
         processed_img = img.convert('L')
         processed_img = self.resize_img(processed_img, 2)
         processed_img = self.increase_contrast(processed_img)
-
+        
+        if(logging.getLogger().isEnabledFor(logging.DEBUG)):
+            processed_img.show()
+        
         logging.info("Running ocr. This may take a few seconds...")
-        ocr_string = pytesseract.image_to_string(processed_img)
-
+        ocr_string = pytesseract.image_to_string(processed_img, config=tessdata_dir_config)
         self.queue.put(ocr_string)
     
     def increase_contrast(self, img):
@@ -239,5 +242,3 @@ class ThreadedOCR(threading.Thread):
     def resize_img(self, img, factor):
         logging.info("Increasing img size...")
         return img.resize((img.size[0]*factor, img.size[1]*factor), Image.ANTIALIAS)
-
-
