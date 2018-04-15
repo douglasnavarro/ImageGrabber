@@ -1,4 +1,4 @@
-# pylint: disable=W0612, E1120, W0614
+# pylint: disable=W0612, E1120, W0614, E1101
 import sys
 import os
 import subprocess
@@ -203,13 +203,19 @@ class GUI:
         Adds '\\' to end of path inserted by user for more intuitive usage
         """
         image = Image.open(self.pathToPreviewImg)
+        filename = self.fileName.get()
+        filename = filename.replace("\n", "")
+        path = self.path.get()
+        
+        if (os.path.isdir(path) is False):
+            logging.info("Destination folder does not exist!")
+            logging.info("Creating destination folder...")
+            os.mkdir(path)
         try:
-            image.save(self.path.get() + "\\" + self.fileName.get())
-            logging.info("Saved " + self.path.get() + "\\" + self.fileName.get())
+            image.save(path + "\\" + filename)
+            logging.info("Saved " + path + "\\" + filename)
         except FileNotFoundError as err:
             messagebox.showerror('File not found error:', err)
-        
-        image.close()
     
     def report_callback_exception(self, *args):
         err = traceback.format_exception(*args)
@@ -232,6 +238,7 @@ class ThreadedOCR(threading.Thread):
         
         logging.info("Running ocr. This may take a few seconds...")
         ocr_string = pytesseract.image_to_string(processed_img, config=tessdata_dir_config)
+        logging.debug("Sending ocr_string = " + ocr_string + " to queue")
         self.queue.put(ocr_string)
     
     def increase_contrast(self, img):
