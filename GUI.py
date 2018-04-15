@@ -113,7 +113,7 @@ class GUI:
         text_handler = TextHandler(self.logWidget)
         text_handler.setFormatter(widget_formater)
 
-        file_handler = logging.FileHandler('log.txt', mode='w')
+        file_handler = logging.FileHandler('log.txt', mode='a')
         file_handler.setFormatter(file_formatter)
         
         logger = logging.getLogger()
