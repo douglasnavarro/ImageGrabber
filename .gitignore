@@ -5,4 +5,4 @@ prod
 build
 __pycache__
 log.txt
-*.png
+.png
