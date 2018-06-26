@@ -76,6 +76,9 @@ class GUI:
         self.jpgRB     = Radiobutton(self.cbFrame, text=".jpg", variable=self.extensionVar, value=".jpg")
         self.sufixLabel = Label(self.cbFrame, text="Add sufixes: ")
 
+        self.popup = Menu(master, tearoff=0)
+        self.popup.add_command(label="Clear console", command=self.clear_console)
+
         # Layout of widgets
         self.cbFrame.pack(pady=3)
         self.ssButton.pack(pady=5)
@@ -105,6 +108,7 @@ class GUI:
         #Logging related
         self.logWidget = ScrolledText.ScrolledText(master, state='disabled')
         self.logWidget.configure(font='TkFixedFont')
+        self.logWidget.bind("<Button-3>", self.do_popup)
         self.logWidget.pack(pady=3, fill=X)
 
         file_formatter = logging.Formatter(fmt='[%(asctime)s] [%(levelname)-4s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
@@ -123,6 +127,9 @@ class GUI:
 
         logging.debug("Path to minicap: " + MINICAP)
         logging.debug("Path to tesseract.exe: " + pytesseract.pytesseract.tesseract_cmd)
+        logging.info("Welcome to ImageGrabber v2.1.0!")
+        logging.info("Check github.com/douglasnavarro/ImageGrabber for new versions.\n")
+        logging.info("Right-click the console to clear it.")
                   
     def run_user_iteration(self):
         """
@@ -137,6 +144,7 @@ class GUI:
         self.restore()
         logging.info("------Finished interaction------")
         self.update_name_entry()
+        self.logWidget.delete('0', END)
         
     def update_current_image(self):
         """
@@ -217,6 +225,18 @@ class GUI:
         except FileNotFoundError as err:
             messagebox.showerror('File not found error:', err)
     
+    def clear_console(self):
+        self.logWidget.config(state='normal')
+        logging.debug('Clearing log console widget!')
+        self.logWidget.delete(0.0, END)
+        self.logWidget.config(state='disabled')
+
+    def do_popup(self, event):
+        try:
+            self.popup.tk_popup(event.x_root, event.y_root, 0)
+        finally:
+            self.popup.grab_release()
+
     def report_callback_exception(self, *args):
         err = traceback.format_exception(*args)
         messagebox.showerror('Exception: ', err)
