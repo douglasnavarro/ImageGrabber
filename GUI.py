@@ -281,6 +281,7 @@ class GUI:
     def report_callback_exception(self, *args):
         err = traceback.format_exception(*args)
         messagebox.showerror('Exception: ', err)
+        logging.error(err)
 
     def minimize_win32(self):
         app = application.Application()
