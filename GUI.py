@@ -2,7 +2,8 @@
 import sys
 import os
 import subprocess
-from tkinter import * 
+from tkinter import *
+from tkinter.ttk import *
 from tkinter import messagebox
 from PIL import ImageTk, Image, ImageEnhance
 import pytesseract
@@ -73,19 +74,19 @@ class GUI:
 
         # Creation of widgets
         self.preview = Label(master, image = self.previewImg)
-        self.lowerButtonsFrame = Frame(master, bd=0)
+        self.lowerButtonsFrame = Frame(master)
         self.ssButton   = Button(master, text="Take screenshot", command=self.run_user_iteration)
         self.saveButton = Button(self.lowerButtonsFrame, text='Save', command=self.save_image)
         self.ocrButton = Button(self.lowerButtonsFrame, text='Run OCR', command=self.update_name_entry)
 
-        self.iframe = Frame(master, bd=2, relief=RIDGE)
+        self.iframe = Frame(master, relief=GROOVE)
         self.pathLabel = Label(self.iframe, text='Destination folder: ')
-        self.pathEntry = Entry(self.iframe, textvariable=self.path, bg='white')
+        self.pathEntry = Entry(self.iframe, textvariable=self.path)
 
-        self.i2frame    = Frame(master, bd=2, relief=RIDGE)
-        self.nameEntry  = Entry(self.i2frame, textvariable=self.fileName, bg='white')
+        self.i2frame    = Frame(master, relief=GROOVE)
+        self.nameEntry  = Entry(self.i2frame, textvariable=self.fileName)
         self.nameLabel  = Label(self.i2frame, text='File Name: ')
-        self.cbFrame    = Frame(master, bd=1, relief=RIDGE)
+        self.cbFrame    = Frame(master, relief=GROOVE)
         self.warningCB  = Checkbutton(self.cbFrame, text="Warning", variable=self.warning, onvalue="_warning", offvalue="")
         self.errorCB    = Checkbutton(self.cbFrame, text="Error", variable=self.error, offvalue="", onvalue="_error")
         self.buttonCB   = Checkbutton(self.cbFrame, text="Button", variable=self.button, offvalue="", onvalue="_button")
@@ -93,15 +94,22 @@ class GUI:
         self.successCB  = Checkbutton(self.cbFrame, text="Success", variable=self.success, offvalue="", onvalue="_success")
         self.pngRB      = Radiobutton(self.cbFrame, text=".png", variable=self.extensionVar, value=".png")
         self.jpgRB      = Radiobutton(self.cbFrame, text=".jpg", variable=self.extensionVar, value=".jpg")
-        self.focusLabel = Label(self.cbFrame, text="Window to focus:")
-        self.focusEntry = Entry(self.cbFrame, textvariable=self.focusVar, bg='white') 
         self.sufixLabel = Label(self.cbFrame, text="Add sufixes: ")
+
+        self.focusFrame = Frame(master, relief=GROOVE)
+        self.focusLabel = Label(self.focusFrame, text="Window to focus:")
+        self.focusEntry = Entry(self.focusFrame, textvariable=self.focusVar) 
 
         self.popup = Menu(master, tearoff=0)
         self.popup.add_command(label="Clear console", command=self.clear_console)
 
         # Layout of widgets
-        self.cbFrame.pack(pady=3)
+        self.cbFrame.pack(pady=5)
+
+        self.focusFrame.pack(pady=5)
+        self.focusLabel.grid(row=0, column=0, pady=3, padx=3)
+        self.focusEntry.grid(row=0, column=1, pady=5, padx=5)
+
         self.ssButton.pack(pady=5)
         self.preview.pack(pady=5)
         self.iframe.pack(padx=50,fill=X)
@@ -109,19 +117,18 @@ class GUI:
         self.pathEntry.pack(padx=5, pady=5, fill=X)
 
         self.i2frame.pack(padx=50, fill=X)
-        self.nameLabel.pack(side=LEFT, anchor=N, padx=5, pady=3)
-        self.nameEntry.pack(padx=5, pady=3, fill=X)
+        self.nameLabel.pack(side=LEFT, padx=52, pady=5)
+        self.nameEntry.pack(padx=5, pady=5, fill=X)
 
-        self.sufixLabel.grid(row=0, column=0)
-        self.warningCB.grid(row=0, column=1)
-        self.errorCB.grid(row=0, column=2)
-        self.buttonCB.grid(row=0, column=3)
-        self.messageCB.grid(row=0, column=4)
-        self.successCB.grid(row=0, column=5)
-        self.pngRB.grid(row=0, column=6)
-        self.jpgRB.grid(row=0, column=7)
-        self.focusLabel.grid(row=1, column=3)
-        self.focusEntry.grid(row=1, column=4)
+        self.sufixLabel.grid(row=0, column=0, pady=2, padx=2)
+        self.warningCB.grid(row=0, column=1, pady=2)
+        self.errorCB.grid(row=0, column=2, pady=2)
+        self.buttonCB.grid(row=0, column=3, pady=2)
+        self.messageCB.grid(row=0, column=4, pady=2)
+        self.successCB.grid(row=0, column=5, pady=2)
+        self.pngRB.grid(row=0, column=6, pady=2, padx=2)
+        self.jpgRB.grid(row=0, column=7, pady=2, padx=2)
+
 
         self.lowerButtonsFrame.pack(pady=5)
         self.saveButton.grid(row=0, column=0, padx=5)
