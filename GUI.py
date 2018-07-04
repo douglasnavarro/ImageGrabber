@@ -150,7 +150,7 @@ class GUI:
 
         logging.debug("Path to minicap: " + MINICAP)
         logging.debug("Path to tesseract.exe: " + pytesseract.pytesseract.tesseract_cmd)
-        logging.info("Welcome to ImageGrabber v2.1.0!")
+        logging.info("Welcome to ImageGrabber v2.2.0!")
         logging.info("Check github.com/douglasnavarro/ImageGrabber for new versions.\n")
         logging.info("Right-click the console to clear it.")
 
