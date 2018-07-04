@@ -5,5 +5,6 @@ prod
 build
 __pycache__
 log.txt
+persistent_variables.txt
 .png
 dist
