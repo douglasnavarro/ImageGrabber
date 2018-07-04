@@ -13,6 +13,8 @@ from TextHandler import TextHandler
 import threading
 import queue as Queue
 import time
+from pywinauto import application
+from pywinauto.findwindows import WindowAmbiguousError, WindowNotFoundError
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -29,12 +31,29 @@ tessdata_dir_config = '--tessdata-dir \"' + resource_path('bin\\Tesseract-OCR\\t
 MINICAP = resource_path("bin\\MiniCap.exe")
 window_icon = resource_path("icon.ico")
 
+def focus_window(name):
+    app = application.Application()
+    try:
+        app.connect(title_re=".*%s.*" % name)
+        app_dialog = app.top_window_()
+        app_dialog.Minimize()
+        app_dialog.Restore()
+        #app_dialog.SetFocus()
+        logging.info("Restored {} window".format(name))
+    except WindowNotFoundError:
+        logging.info(" {} window not found.".format(name))
+        pass
+    except WindowAmbiguousError:
+        logging.info("There are too many '{}' windows found.".format(name))
+        pass
+
 
 class GUI:
     def __init__(self, master):
         self.master = master
         self.master.title("Quick image grabber")
         self.master.report_callback_exception = self.report_callback_exception
+        self.master.protocol("WM_DELETE_WINDOW", self.store_persistent_vars)
         self.master.iconbitmap(window_icon)
 
         # we need these attributes to build file name based on checkboxes and radiobutton
@@ -44,6 +63,7 @@ class GUI:
         self.message = StringVar()
         self.success = StringVar()
         self.extensionVar = StringVar()
+        self.focusVar = StringVar()
         self.extensionVar.set(".png")
         self.path = StringVar()
         self.fileName = StringVar()
@@ -61,19 +81,20 @@ class GUI:
         self.iframe = Frame(master, bd=2, relief=RIDGE)
         self.pathLabel = Label(self.iframe, text='Destination folder: ')
         self.pathEntry = Entry(self.iframe, textvariable=self.path, bg='white')
-        self.path.set("C:\\Scripts\\Imagens")
 
-        self.i2frame   = Frame(master, bd=2, relief=RIDGE)
-        self.nameEntry = Entry(self.i2frame, textvariable=self.fileName, bg='white')
-        self.nameLabel = Label(self.i2frame, text='File Name: ')
-        self.cbFrame   = Frame(master, bd=1, relief=RIDGE)
-        self.warningCB = Checkbutton(self.cbFrame, text="Warning", variable=self.warning, onvalue="_warning", offvalue="")
-        self.errorCB   = Checkbutton(self.cbFrame, text="Error", variable=self.error, offvalue="", onvalue="_error")
-        self.buttonCB  = Checkbutton(self.cbFrame, text="Button", variable=self.button, offvalue="", onvalue="_button")
-        self.messageCB = Checkbutton(self.cbFrame, text="Message", variable=self.message, offvalue="", onvalue="_message")
-        self.successCB = Checkbutton(self.cbFrame, text="Success", variable=self.success, offvalue="", onvalue="_success")
-        self.pngRB     = Radiobutton(self.cbFrame, text=".png", variable=self.extensionVar, value=".png")
-        self.jpgRB     = Radiobutton(self.cbFrame, text=".jpg", variable=self.extensionVar, value=".jpg")
+        self.i2frame    = Frame(master, bd=2, relief=RIDGE)
+        self.nameEntry  = Entry(self.i2frame, textvariable=self.fileName, bg='white')
+        self.nameLabel  = Label(self.i2frame, text='File Name: ')
+        self.cbFrame    = Frame(master, bd=1, relief=RIDGE)
+        self.warningCB  = Checkbutton(self.cbFrame, text="Warning", variable=self.warning, onvalue="_warning", offvalue="")
+        self.errorCB    = Checkbutton(self.cbFrame, text="Error", variable=self.error, offvalue="", onvalue="_error")
+        self.buttonCB   = Checkbutton(self.cbFrame, text="Button", variable=self.button, offvalue="", onvalue="_button")
+        self.messageCB  = Checkbutton(self.cbFrame, text="Message", variable=self.message, offvalue="", onvalue="_message")
+        self.successCB  = Checkbutton(self.cbFrame, text="Success", variable=self.success, offvalue="", onvalue="_success")
+        self.pngRB      = Radiobutton(self.cbFrame, text=".png", variable=self.extensionVar, value=".png")
+        self.jpgRB      = Radiobutton(self.cbFrame, text=".jpg", variable=self.extensionVar, value=".jpg")
+        self.focusLabel = Label(self.cbFrame, text="Window to focus:")
+        self.focusEntry = Entry(self.cbFrame, textvariable=self.focusVar, bg='white') 
         self.sufixLabel = Label(self.cbFrame, text="Add sufixes: ")
 
         self.popup = Menu(master, tearoff=0)
@@ -99,6 +120,8 @@ class GUI:
         self.successCB.grid(row=0, column=5)
         self.pngRB.grid(row=0, column=6)
         self.jpgRB.grid(row=0, column=7)
+        self.focusLabel.grid(row=1, column=3)
+        self.focusEntry.grid(row=1, column=4)
 
         self.lowerButtonsFrame.pack(pady=5)
         self.saveButton.grid(row=0, column=0, padx=5)
@@ -130,6 +153,9 @@ class GUI:
         logging.info("Welcome to ImageGrabber v2.1.0!")
         logging.info("Check github.com/douglasnavarro/ImageGrabber for new versions.\n")
         logging.info("Right-click the console to clear it.")
+
+        #Load persistent vars from file or set default values
+        self.load_persistent_vars()
                   
     def run_user_iteration(self):
         """
@@ -137,11 +163,26 @@ class GUI:
         Minimize GUI, take SS, restore GUI, run OCR
         """
         logging.info("------Started interaction------")
-        self.minimize()
+
+        if 'win' in sys.platform and self.focusVar.get() != '':
+            self.minimize_win32()
+            time.sleep(0.2)
+            focus_window(self.focusVar.get())
+        elif 'win' not in sys.platform and self.focusVar.get() != '':
+            logging.info("Window focusing feature is available only for Windows OS. Proceding with non-native minimize.")
+            self.minimize()
+        else:
+            self.minimize()
         time.sleep(0.2)
+        
         self.update_current_image()
         self.update_preview_widget()
-        self.restore()
+
+        if 'win' in sys.platform:
+            focus_window('image grabber')
+        else:
+            self.restore()
+        
         logging.info("------Finished interaction------")
         self.update_name_entry()
         self.logWidget.delete('0', END)
@@ -240,6 +281,56 @@ class GUI:
     def report_callback_exception(self, *args):
         err = traceback.format_exception(*args)
         messagebox.showerror('Exception: ', err)
+
+    def minimize_win32(self):
+        app = application.Application()
+        try:
+            app.connect(title_re=".*%s.*" % "image grabber")
+            app_dialog = app.top_window_()
+            app_dialog.Minimize()
+            logging.info("Minimized image grabber.")
+        except WindowNotFoundError:
+            logging.info("Image grabber window not found. Could not minimize.")
+            pass
+        except WindowAmbiguousError:
+            logging.info("There are too many 'image grabber' windows found. Could not minimize.")
+            pass
+
+    def store_persistent_vars(self):
+        logging.info("Storing persistent variables before closing...")
+        with open('persistent_vars.txt', 'w') as file:
+            file.write('destination_foder={}\n'.format(self.path.get()))
+            file.write('window_to_focus={}\n'.format(self.focusVar.get()))
+            logging.info('Persistent variables stored! Closing now.')
+        self.master.update()
+        time.sleep(1)
+        self.master.destroy()
+
+    def load_persistent_vars(self):
+        logging.info("Loading persistent variables if available...")
+        try:
+            with open('persistent_vars.txt', 'r') as file:
+                dest_folder_line = file.readline()
+                window_to_focus_line = file.readline()
+        except FileNotFoundError:
+            logging.info('No persistent variables file found.')
+            self.path.set("C:\\Scripts\\Imagens")
+            return
+        
+        folder_line_split = dest_folder_line.split('=')
+        if len(folder_line_split) > 1:
+            self.path.set(folder_line_split[1].replace('\n',''))
+        else:
+            self.path.set('')
+        
+        focus_line_split = window_to_focus_line.split('=')
+        if len(focus_line_split) > 1:
+            self.focusVar.set(focus_line_split[1].replace('\n',''))
+        else:
+            self.focusVar.set('')
+        
+        logging.info('Persistent settings loaded. Welcome back.')
+        
 
 class ThreadedOCR(threading.Thread):
     def __init__(self, queue):
