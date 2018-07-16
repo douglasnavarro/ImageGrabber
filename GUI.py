@@ -260,7 +260,7 @@ class GUI:
         if (os.path.isdir(path) is False):
             logging.info("Destination folder does not exist!")
             logging.info("Creating destination folder...")
-            os.mkdir(path)
+            os.makedirs(path, exist_ok=True)
         try:
             image.save(path + "\\" + filename)
             logging.info("Saved " + path + "\\" + filename)
