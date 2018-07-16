@@ -14,8 +14,7 @@ from TextHandler import TextHandler
 import threading
 import queue as Queue
 import time
-from pywinauto import application
-from pywinauto.findwindows import WindowAmbiguousError, WindowNotFoundError
+from pywinauto import application, handleprops, findwindows
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -31,23 +30,6 @@ pytesseract.pytesseract.tesseract_cmd = resource_path('bin\\Tesseract-OCR\\tesse
 tessdata_dir_config = '--tessdata-dir \"' + resource_path('bin\\Tesseract-OCR\\tessdata') + "\""
 MINICAP = resource_path("bin\\MiniCap.exe")
 window_icon = resource_path("icon.ico")
-
-def focus_window(name):
-    app = application.Application()
-    try:
-        app.connect(title_re=".*%s.*" % name)
-        app_dialog = app.top_window_()
-        app_dialog.Minimize()
-        app_dialog.Restore()
-        #app_dialog.SetFocus()
-        logging.info("Restored {} window".format(name))
-    except WindowNotFoundError:
-        logging.info(" {} window not found.".format(name))
-        pass
-    except WindowAmbiguousError:
-        logging.info("There are too many '{}' windows found.".format(name))
-        pass
-
 
 class GUI:
     def __init__(self, master):
@@ -96,9 +78,13 @@ class GUI:
         self.jpgRB      = Radiobutton(self.cbFrame, text=".jpg", variable=self.extensionVar, value=".jpg")
         self.sufixLabel = Label(self.cbFrame, text="Add sufixes: ")
 
+        self.focus_choices = ['']
+        self.focusVar.set('')
+
         self.focusFrame = Frame(master, relief=GROOVE)
         self.focusLabel = Label(self.focusFrame, text="Window to focus:")
-        self.focusEntry = Entry(self.focusFrame, textvariable=self.focusVar) 
+        self.focusMenu  = OptionMenu(self.focusFrame, self.focusVar, *self.focus_choices)
+        self.updateFocusButton = Button(self.focusFrame, text='Update', command=self.update_focus_choices)
 
         self.popup = Menu(master, tearoff=0)
         self.popup.add_command(label="Clear console", command=self.clear_console)
@@ -108,7 +94,8 @@ class GUI:
 
         self.focusFrame.pack(pady=5)
         self.focusLabel.grid(row=0, column=0, pady=3, padx=3)
-        self.focusEntry.grid(row=0, column=1, pady=5, padx=5)
+        self.focusMenu.grid(row=0, column=1, pady=5, padx=5)
+        self.updateFocusButton.grid(row=0, column=2, pady=5, padx=5)
 
         self.ssButton.pack(pady=5)
         self.preview.pack(pady=5)
@@ -141,25 +128,28 @@ class GUI:
         self.logWidget.bind("<Button-3>", self.do_popup)
         self.logWidget.pack(pady=3, fill=X)
 
+        logger = logging.getLogger()
+        logger.setLevel(logging.DEBUG)
+
         file_formatter = logging.Formatter(fmt='[%(asctime)s] [%(levelname)-4s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
         widget_formater = logging.Formatter(fmt='[%(asctime)s] %(message)s', datefmt='%H:%M:%S')
         
         text_handler = TextHandler(self.logWidget)
+        text_handler.setLevel(logging.INFO)
         text_handler.setFormatter(widget_formater)
 
         file_handler = logging.FileHandler('log.txt', mode='a')
+        file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(file_formatter)
         
-        logger = logging.getLogger()
-        logger.setLevel(logging.INFO)
         logger.addHandler(text_handler)
         logger.addHandler(file_handler)
 
         logging.debug("Path to minicap: " + MINICAP)
         logging.debug("Path to tesseract.exe: " + pytesseract.pytesseract.tesseract_cmd)
-        logging.info("Welcome to ImageGrabber v2.2.0!")
-        logging.info("Check github.com/douglasnavarro/ImageGrabber for new versions.\n")
-        logging.info("Right-click the console to clear it.")
+        logging.info("Welcome to ImageGrabber v2.2.2!")
+        logging.info("Check github.com/douglasnavarro/ImageGrabber for new versions.")
+        logging.info("Right-click the console to clear it.\n")
 
         #Load persistent vars from file or set default values
         self.load_persistent_vars()
@@ -171,22 +161,26 @@ class GUI:
         """
         logging.info("------Started interaction------")
 
-        if 'win' in sys.platform and self.focusVar.get() != '':
-            self.minimize_win32()
-            time.sleep(0.2)
-            focus_window(self.focusVar.get())
-        elif 'win' not in sys.platform and self.focusVar.get() != '':
-            logging.info("Window focusing feature is available only for Windows OS. Proceding with non-native minimize.")
-            self.minimize()
-        else:
-            self.minimize()
+        self.minimize()
         time.sleep(0.2)
-        
+
+        ranFocus = False
+        if self.focusVar.get() != '' and 'win' in sys.platform.lower():
+            try:
+                self.focus_window(self.focusVar.get())
+                ranFocus = True
+                time.sleep(0.2)
+            except Exception as e:
+                logging.exception('An error occurred while focusing selected window.')
+
         self.update_current_image()
         self.update_preview_widget()
 
-        if 'win' in sys.platform:
-            focus_window('image grabber')
+        if ranFocus is True:
+            try:
+                self.focus_window('image grabber')
+            except Exception as e:
+                logging.exception('An error occurred while focusing image grabber window.')
         else:
             self.restore()
         
@@ -290,25 +284,10 @@ class GUI:
         messagebox.showerror('Exception: ', err)
         logging.error(err)
 
-    def minimize_win32(self):
-        app = application.Application()
-        try:
-            app.connect(title_re=".*%s.*" % "image grabber")
-            app_dialog = app.top_window_()
-            app_dialog.Minimize()
-            logging.info("Minimized image grabber.")
-        except WindowNotFoundError:
-            logging.info("Image grabber window not found. Could not minimize.")
-            pass
-        except WindowAmbiguousError:
-            logging.info("There are too many 'image grabber' windows found. Could not minimize.")
-            pass
-
     def store_persistent_vars(self):
         logging.info("Storing persistent variables before closing...")
         with open('persistent_vars.txt', 'w') as file:
             file.write('destination_foder={}\n'.format(self.path.get()))
-            file.write('window_to_focus={}\n'.format(self.focusVar.get()))
             logging.info('Persistent variables stored! Closing now.')
         self.master.update()
         time.sleep(1)
@@ -319,7 +298,6 @@ class GUI:
         try:
             with open('persistent_vars.txt', 'r') as file:
                 dest_folder_line = file.readline()
-                window_to_focus_line = file.readline()
         except FileNotFoundError:
             logging.info('No persistent variables file found.')
             self.path.set("C:\\Scripts\\Imagens")
@@ -330,15 +308,39 @@ class GUI:
             self.path.set(folder_line_split[1].replace('\n',''))
         else:
             self.path.set('')
-        
-        focus_line_split = window_to_focus_line.split('=')
-        if len(focus_line_split) > 1:
-            self.focusVar.set(focus_line_split[1].replace('\n',''))
-        else:
-            self.focusVar.set('')
-        
+      
         logging.info('Persistent settings loaded. Welcome back.')
         
+    def focus_window(self, name):
+        app = application.Application()
+        try:
+            app.connect(title_re=".*%s.*" % name)
+            app_dialog = app.top_window_()
+            app_dialog.Minimize()
+            app_dialog.Restore()
+            #app_dialog.SetFocus()
+            logging.info("Restored {} window".format(name))
+        except:
+            raise
+    
+    def list_windows(self):
+        hwnds = findwindows.find_windows()
+        names = [handleprops.text(hwnd) for hwnd in hwnds]
+        while '' in names:
+            names.remove('')
+        while None in names:
+            names.remove(None)
+        logging.debug('Detected following windows: {}'.format(names))
+        names.append('')
+        return names
+    
+    def update_focus_choices(self):
+        menu = self.focusMenu["menu"]
+        menu.delete(0, "end")
+        self.focus_choices = self.list_windows()
+        for string in self.focus_choices:
+            menu.add_command(label=string, command=lambda value=string: self.focusVar.set(value))
+    
 
 class ThreadedOCR(threading.Thread):
     def __init__(self, queue):
@@ -351,10 +353,7 @@ class ThreadedOCR(threading.Thread):
         processed_img = img.convert('L')
         processed_img = self.resize_img(processed_img, 2)
         processed_img = self.increase_contrast(processed_img)
-        
-        if(logging.getLogger().isEnabledFor(logging.DEBUG)):
-            processed_img.show()
-        
+               
         logging.info("Running ocr. This may take a few seconds...")
         ocr_string = pytesseract.image_to_string(processed_img, config=tessdata_dir_config)
         logging.debug("Sending ocr_string = " + ocr_string + " to queue")
