@@ -33,6 +33,9 @@ window_icon = resource_path("icon.ico")
 
 class GUI:
     def __init__(self, master):
+        """
+        Builds GUI and initializes logger.
+        """
         self.master = master
         self.master.title("Quick image grabber")
         self.master.report_callback_exception = self.report_callback_exception
@@ -147,7 +150,7 @@ class GUI:
 
         logging.debug("Path to minicap: " + MINICAP)
         logging.debug("Path to tesseract.exe: " + pytesseract.pytesseract.tesseract_cmd)
-        logging.info("Welcome to ImageGrabber v2.2.2!")
+        logging.info("Welcome to ImageGrabber v2.2.3!")
         logging.info("Check github.com/douglasnavarro/ImageGrabber for new versions.")
         logging.info("Right-click the console to clear it.\n")
 
@@ -157,7 +160,7 @@ class GUI:
     def run_user_iteration(self):
         """
         Run basic user iteration:
-        Minimize GUI, take SS, restore GUI, run OCR
+        Minimize GUI, focus window if selected, take SS, restore GUI, run OCR
         """
         logging.info("------Started interaction------")
 
@@ -251,6 +254,7 @@ class GUI:
         """
         Saves current preview image to new file using path and name from user input
         Adds '\\' to end of path inserted by user for more intuitive usage
+        Creates directory if does not exist
         """
         image = Image.open(self.pathToPreviewImg)
         filename = self.fileName.get()
@@ -268,23 +272,37 @@ class GUI:
             messagebox.showerror('File not found error:', err)
     
     def clear_console(self):
+        """
+        Method called when user clicks 'clear console'        
+        """
         self.logWidget.config(state='normal')
         logging.debug('Clearing log console widget!')
         self.logWidget.delete(0.0, END)
         self.logWidget.config(state='disabled')
 
     def do_popup(self, event):
+        """
+        Shows popup menu. Used on 'clear console' feature.
+        """
         try:
             self.popup.tk_popup(event.x_root, event.y_root, 0)
         finally:
             self.popup.grab_release()
 
     def report_callback_exception(self, *args):
+        """
+        Handles exception by showing popup and logging it.
+        Prevents application from crashing.
+        """
         err = traceback.format_exception(*args)
         messagebox.showerror('Exception: ', err)
         logging.error(err)
 
     def store_persistent_vars(self):
+        """
+        Saves destination folder to text file and destroys GUI.
+        Lets user read on the console that variables were stored.
+        """
         logging.info("Storing persistent variables before closing...")
         with open('persistent_vars.txt', 'w') as file:
             file.write('destination_foder={}\n'.format(self.path.get()))
@@ -294,6 +312,9 @@ class GUI:
         self.master.destroy()
 
     def load_persistent_vars(self):
+        """
+        Loads destination folder from text file.
+        """
         logging.info("Loading persistent variables if available...")
         try:
             with open('persistent_vars.txt', 'r') as file:
@@ -312,6 +333,10 @@ class GUI:
         logging.info('Persistent settings loaded. Welcome back.')
         
     def focus_window(self, name):
+        """
+        Uses pywinauto to focus window that contains 'name' in its name.
+        Windows only!
+        """
         app = application.Application()
         try:
             app.connect(title_re=".*%s.*" % name)
@@ -324,6 +349,11 @@ class GUI:
             raise
     
     def list_windows(self):
+        """
+        Returns a list of current open windows.
+        Invalid elements such as '' and None are removed.
+        Windows O.S ONLY!
+        """
         hwnds = findwindows.find_windows()
         names = [handleprops.text(hwnd) for hwnd in hwnds]
         while '' in names:
@@ -335,6 +365,9 @@ class GUI:
         return names
     
     def update_focus_choices(self):
+        """
+        Updates dropdown menu choices with current windows open.
+        """
         menu = self.focusMenu["menu"]
         menu.delete(0, "end")
         self.focus_choices = self.list_windows()
