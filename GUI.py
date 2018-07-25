@@ -16,6 +16,7 @@ import queue as Queue
 import time
 from pywinauto import application, handleprops, findwindows
 
+
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
@@ -26,10 +27,14 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
-pytesseract.pytesseract.tesseract_cmd = resource_path('bin\\Tesseract-OCR\\tesseract')
-tessdata_dir_config = '--tessdata-dir \"' + resource_path('bin\\Tesseract-OCR\\tessdata') + "\""
+
+pytesseract.pytesseract.tesseract_cmd = resource_path(
+    'bin\\Tesseract-OCR\\tesseract')
+tessdata_dir_config = '--tessdata-dir \"' + \
+    resource_path('bin\\Tesseract-OCR\\tessdata') + "\""
 MINICAP = resource_path("bin\\MiniCap.exe")
 window_icon = resource_path("icon.ico")
+
 
 class GUI:
     def __init__(self, master):
@@ -58,27 +63,37 @@ class GUI:
         self.previewImg = ImageTk.PhotoImage(Image.open(self.pathToPreviewImg))
 
         # Creation of widgets
-        self.preview = Label(master, image = self.previewImg)
+        self.preview = Label(master, image=self.previewImg)
         self.lowerButtonsFrame = Frame(master)
-        self.ssButton   = Button(master, text="Take screenshot", command=self.run_user_iteration)
-        self.saveButton = Button(self.lowerButtonsFrame, text='Save', command=self.save_image)
-        self.ocrButton = Button(self.lowerButtonsFrame, text='Run OCR', command=self.update_name_entry)
+        self.ssButton = Button(
+            master, text="Take screenshot", command=self.run_user_iteration)
+        self.saveButton = Button(
+            self.lowerButtonsFrame, text='Save', command=self.save_image)
+        self.ocrButton = Button(self.lowerButtonsFrame,
+                                text='Run OCR', command=self.update_name_entry)
 
         self.iframe = Frame(master, relief=GROOVE)
         self.pathLabel = Label(self.iframe, text='Destination folder: ')
         self.pathEntry = Entry(self.iframe, textvariable=self.path)
 
-        self.i2frame    = Frame(master, relief=GROOVE)
-        self.nameEntry  = Entry(self.i2frame, textvariable=self.fileName)
-        self.nameLabel  = Label(self.i2frame, text='File Name: ')
-        self.cbFrame    = Frame(master, relief=GROOVE)
-        self.warningCB  = Checkbutton(self.cbFrame, text="Warning", variable=self.warning, onvalue="_warning", offvalue="")
-        self.errorCB    = Checkbutton(self.cbFrame, text="Error", variable=self.error, offvalue="", onvalue="_error")
-        self.buttonCB   = Checkbutton(self.cbFrame, text="Button", variable=self.button, offvalue="", onvalue="_button")
-        self.messageCB  = Checkbutton(self.cbFrame, text="Message", variable=self.message, offvalue="", onvalue="_message")
-        self.successCB  = Checkbutton(self.cbFrame, text="Success", variable=self.success, offvalue="", onvalue="_success")
-        self.pngRB      = Radiobutton(self.cbFrame, text=".png", variable=self.extensionVar, value=".png")
-        self.jpgRB      = Radiobutton(self.cbFrame, text=".jpg", variable=self.extensionVar, value=".jpg")
+        self.i2frame = Frame(master, relief=GROOVE)
+        self.nameEntry = Entry(self.i2frame, textvariable=self.fileName)
+        self.nameLabel = Label(self.i2frame, text='File Name: ')
+        self.cbFrame = Frame(master, relief=GROOVE)
+        self.warningCB = Checkbutton(
+            self.cbFrame, text="Warning", variable=self.warning, onvalue="_warning", offvalue="")
+        self.errorCB = Checkbutton(
+            self.cbFrame, text="Error", variable=self.error, offvalue="", onvalue="_error")
+        self.buttonCB = Checkbutton(
+            self.cbFrame, text="Button", variable=self.button, offvalue="", onvalue="_button")
+        self.messageCB = Checkbutton(
+            self.cbFrame, text="Message", variable=self.message, offvalue="", onvalue="_message")
+        self.successCB = Checkbutton(
+            self.cbFrame, text="Success", variable=self.success, offvalue="", onvalue="_success")
+        self.pngRB = Radiobutton(
+            self.cbFrame, text=".png", variable=self.extensionVar, value=".png")
+        self.jpgRB = Radiobutton(
+            self.cbFrame, text=".jpg", variable=self.extensionVar, value=".jpg")
         self.sufixLabel = Label(self.cbFrame, text="Add sufixes: ")
 
         self.focus_choices = ['']
@@ -86,11 +101,14 @@ class GUI:
 
         self.focusFrame = Frame(master, relief=GROOVE)
         self.focusLabel = Label(self.focusFrame, text="Window to focus:")
-        self.focusMenu  = OptionMenu(self.focusFrame, self.focusVar, *self.focus_choices)
-        self.updateFocusButton = Button(self.focusFrame, text='Update', command=self.update_focus_choices)
+        self.focusMenu = OptionMenu(
+            self.focusFrame, self.focusVar, *self.focus_choices)
+        self.updateFocusButton = Button(
+            self.focusFrame, text='Update', command=self.update_focus_choices)
 
         self.popup = Menu(master, tearoff=0)
-        self.popup.add_command(label="Clear console", command=self.clear_console)
+        self.popup.add_command(label="Clear console",
+                               command=self.clear_console)
 
         # Layout of widgets
         self.cbFrame.pack(pady=5)
@@ -102,7 +120,7 @@ class GUI:
 
         self.ssButton.pack(pady=5)
         self.preview.pack(pady=5)
-        self.iframe.pack(padx=50,fill=X)
+        self.iframe.pack(padx=50, fill=X)
         self.pathLabel.pack(side=LEFT, padx=32, pady=5)
         self.pathEntry.pack(padx=5, pady=5, fill=X)
 
@@ -119,13 +137,11 @@ class GUI:
         self.pngRB.grid(row=0, column=6, pady=2, padx=2)
         self.jpgRB.grid(row=0, column=7, pady=2, padx=2)
 
-
         self.lowerButtonsFrame.pack(pady=5)
         self.saveButton.grid(row=0, column=0, padx=5)
         self.ocrButton.grid(row=0, column=1, padx=5)
-        
 
-        #Logging related
+        # Logging related
         self.logWidget = ScrolledText.ScrolledText(master, state='disabled')
         self.logWidget.configure(font='TkFixedFont')
         self.logWidget.bind("<Button-3>", self.do_popup)
@@ -134,9 +150,11 @@ class GUI:
         logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)
 
-        file_formatter = logging.Formatter(fmt='[%(asctime)s] [%(levelname)-4s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-        widget_formater = logging.Formatter(fmt='[%(asctime)s] %(message)s', datefmt='%H:%M:%S')
-        
+        file_formatter = logging.Formatter(
+            fmt='[%(asctime)s] [%(levelname)-4s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        widget_formater = logging.Formatter(
+            fmt='[%(asctime)s] %(message)s', datefmt='%H:%M:%S')
+
         text_handler = TextHandler(self.logWidget)
         text_handler.setLevel(logging.INFO)
         text_handler.setFormatter(widget_formater)
@@ -144,19 +162,21 @@ class GUI:
         file_handler = logging.FileHandler('log.txt', mode='a')
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(file_formatter)
-        
+
         logger.addHandler(text_handler)
         logger.addHandler(file_handler)
 
         logging.debug("Path to minicap: " + MINICAP)
-        logging.debug("Path to tesseract.exe: " + pytesseract.pytesseract.tesseract_cmd)
+        logging.debug("Path to tesseract.exe: " +
+                      pytesseract.pytesseract.tesseract_cmd)
         logging.info("Welcome to ImageGrabber v2.2.3!")
-        logging.info("Check github.com/douglasnavarro/ImageGrabber for new versions.")
+        logging.info(
+            "Check github.com/douglasnavarro/ImageGrabber for new versions.")
         logging.info("Right-click the console to clear it.\n")
 
-        #Load persistent vars from file or set default values
+        # Load persistent vars from file or set default values
         self.load_persistent_vars()
-                  
+
     def run_user_iteration(self):
         """
         Run basic user iteration:
@@ -174,7 +194,8 @@ class GUI:
                 ranFocus = True
                 time.sleep(0.2)
             except Exception as e:
-                logging.exception('An error occurred while focusing selected window.')
+                logging.exception(
+                    'An error occurred while focusing selected window.')
 
         self.update_current_image()
         self.update_preview_widget()
@@ -183,22 +204,24 @@ class GUI:
             try:
                 self.focus_window('image grabber')
             except Exception as e:
-                logging.exception('An error occurred while focusing image grabber window.')
+                logging.exception(
+                    'An error occurred while focusing image grabber window.')
         else:
             self.restore()
-        
+
         logging.info("------Finished interaction------")
         self.update_name_entry()
         self.logWidget.delete('0', END)
-        
+
     def update_current_image(self):
         """
         Runs minicap to save a temporary image
         Returns 0 for success
         """
-        status = subprocess.call([MINICAP, "-captureregselect", "-exit", "-save", "..\\preview.png"])
+        status = subprocess.call(
+            [MINICAP, "-captureregselect", "-exit", "-save", "..\\preview.png"])
         return status
-    
+
     def update_preview_widget(self):
         """
         Updates preview image inside the GUI
@@ -210,7 +233,8 @@ class GUI:
         self.preview.image = self.previewImg
         logging.info("Updated preview widget.")
         with Image.open(self.pathToPreviewImg) as img:
-            logging.info("Image size = {:d} x {:d} pixels".format(img.size[0], img.size[1]))
+            logging.info("Image size = {:d} x {:d} pixels".format(
+                img.size[0], img.size[1]))
 
     def restore(self):
         """
@@ -240,13 +264,17 @@ class GUI:
             ocr_string = self.queue.get(0)
             if (ocr_string == ""):
                 logging.info("OCR yielded no result.")
-                logging.info("Adding only sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.extensionVar.get()]))
-                self.fileName.set(self.warning.get() + self.error.get() + self.button.get() + self.message.get() + self.extensionVar.get())
+                logging.info("Adding only sufixes: " + " ".join(
+                    [self.warning.get(), self.error.get(), self.button.get(), self.extensionVar.get()]))
+                self.fileName.set(self.warning.get() + self.error.get() +
+                                  self.button.get() + self.message.get() + self.extensionVar.get())
             else:
                 logging.info("OCR result: " + ocr_string)
                 ocr_string = ocr_string.replace(" ", "_")
-                logging.info("Adding ocr_string and sufixes: " + " ".join([self.warning.get(), self.error.get(), self.button.get(), self.success.get(), self.extensionVar.get()]))
-                self.fileName.set(ocr_string + self.warning.get() + self.error.get() + self.success.get()+ self.button.get() + self.message.get()  + self.extensionVar.get())
+                logging.info("Adding ocr_string and sufixes: " + " ".join([self.warning.get(
+                ), self.error.get(), self.button.get(), self.success.get(), self.extensionVar.get()]))
+                self.fileName.set(ocr_string + self.warning.get() + self.error.get() + self.success.get(
+                ) + self.button.get() + self.message.get() + self.extensionVar.get())
         except Queue.Empty:
             self.master.after(100, self.process_queue)
 
@@ -260,7 +288,7 @@ class GUI:
         filename = self.fileName.get()
         filename = filename.replace("\n", "")
         path = self.path.get()
-        
+
         if (os.path.isdir(path) is False):
             logging.info("Destination folder does not exist!")
             logging.info("Creating destination folder...")
@@ -270,7 +298,7 @@ class GUI:
             logging.info("Saved " + path + "\\" + filename)
         except FileNotFoundError as err:
             messagebox.showerror('File not found error:', err)
-    
+
     def clear_console(self):
         """
         Method called when user clicks 'clear console'        
@@ -323,15 +351,15 @@ class GUI:
             logging.info('No persistent variables file found.')
             self.path.set("C:\\Scripts\\Imagens")
             return
-        
+
         folder_line_split = dest_folder_line.split('=')
         if len(folder_line_split) > 1:
-            self.path.set(folder_line_split[1].replace('\n',''))
+            self.path.set(folder_line_split[1].replace('\n', ''))
         else:
             self.path.set('')
-      
+
         logging.info('Persistent settings loaded. Welcome back.')
-        
+
     def focus_window(self, name):
         """
         Uses pywinauto to focus window that contains 'name' in its name.
@@ -343,11 +371,11 @@ class GUI:
             app_dialog = app.top_window_()
             app_dialog.Minimize()
             app_dialog.Restore()
-            #app_dialog.SetFocus()
+            # app_dialog.SetFocus()
             logging.info("Restored {} window".format(name))
         except:
             raise
-    
+
     def list_windows(self):
         """
         Returns a list of current open windows.
@@ -363,7 +391,7 @@ class GUI:
         logging.debug('Detected following windows: {}'.format(names))
         names.append('')
         return names
-    
+
     def update_focus_choices(self):
         """
         Updates dropdown menu choices with current windows open.
@@ -372,13 +400,15 @@ class GUI:
         menu.delete(0, "end")
         self.focus_choices = self.list_windows()
         for string in self.focus_choices:
-            menu.add_command(label=string, command=lambda value=string: self.focusVar.set(value))
-    
+            menu.add_command(
+                label=string, command=lambda value=string: self.focusVar.set(value))
+
 
 class ThreadedOCR(threading.Thread):
     def __init__(self, queue):
         threading.Thread.__init__(self)
         self.queue = queue
+
     def run(self):
         img = Image.open(resource_path('preview.png'))
 
@@ -386,17 +416,18 @@ class ThreadedOCR(threading.Thread):
         processed_img = img.convert('L')
         processed_img = self.resize_img(processed_img, 2)
         processed_img = self.increase_contrast(processed_img)
-               
+
         logging.info("Running ocr. This may take a few seconds...")
-        ocr_string = pytesseract.image_to_string(processed_img, config=tessdata_dir_config)
+        ocr_string = pytesseract.image_to_string(
+            processed_img, config=tessdata_dir_config)
         logging.debug("Sending ocr_string = " + ocr_string + " to queue")
         self.queue.put(ocr_string)
-    
+
     def increase_contrast(self, img):
         logging.info("Increasing img contrast...")
         contrast = ImageEnhance.Contrast(img)
         return contrast.enhance(10)
-    
+
     def resize_img(self, img, factor):
         logging.info("Increasing img size...")
         return img.resize((img.size[0]*factor, img.size[1]*factor), Image.ANTIALIAS)
