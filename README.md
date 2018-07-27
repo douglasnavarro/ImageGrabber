@@ -5,4 +5,4 @@
 - Save: Save image to fixed destination folder, no need to browse every time
 - Run OCR again to update file name sufixes if necessary
 ---
-<p align="center"><img src="https://github.com/douglasnavarro/ImageGrabber/blob/master/usage.gif"/></p>
+<p align="center"><img src="https://github.com/douglasnavarro/ImageGrabber/blob/master/image-grabber-overview.png"/></p>
